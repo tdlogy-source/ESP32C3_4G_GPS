@@ -8,7 +8,7 @@
 #define MCU_SIM_RX_PIN            20 
 #define MCU_SIM_EN_PIN            9  
 
-#define PHONE_NUMBER            "0966009130" 
+#define PHONE_NUMBER            "Nhập số điện thoại vào đây" 
 
 
 void sim_at_wait() {
