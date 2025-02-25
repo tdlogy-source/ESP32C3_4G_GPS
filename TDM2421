@@ -71,8 +71,6 @@ void setup() {
     sim_at_cmd("AT+CSQ");
     Serial.println("Getting IMSI...");
     sim_at_cmd("AT+CIMI");
-    pinMode(2, OUTPUT); 
-    digitalWrite(2, HIGH);
     sent_sms();
     delay(5000);   
     get_gps_data();
