@@ -6,7 +6,7 @@
 #define MCU_SIM_BAUDRATE          115200
 #define MCU_SIM_TX_PIN            21 
 #define MCU_SIM_RX_PIN            20 
-#define MCU_SIM_EN_PIN            9  
+#define MCU_SIM_EN_PIN            2 //doi voi module_V2 IO9 chuyen thanh IO2  
 
 #define PHONE_NUMBER            "Nhập số điện thoại vào đây" 
 
