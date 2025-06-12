@@ -1,18 +1,20 @@
 #include <HardwareSerial.h>
+#include <WiFi.h>
 
-#define ARDUINO_USB_CDC_ON_BOOT   1
-#define ARDUINO_USB_MODE          0
 #define simSerial                 Serial0  
 #define MCU_SIM_BAUDRATE          115200
 #define MCU_SIM_TX_PIN            21 
 #define MCU_SIM_RX_PIN            20 
 #define MCU_SIM_EN_PIN            2 //doi voi module_V2 IO9 chuyen thanh IO2  
-
-#define PHONE_NUMBER            "Nhập số điện thoại vào đây" 
+#define MCU_LED                   10
+#define PHONE_NUMBER            "0..." 
+// Thay bằng thông tin WiFi của bạn
+const char* ssid = "...";        // Tên mạng WiFi
+const char* password = "..."; // Mật khẩu WiFi
 
 
 void sim_at_wait() {
-    delay(100);
+    delay(500);
     while (simSerial.available()) {
         Serial.write(simSerial.read());
     }
@@ -54,12 +56,39 @@ void get_gps_data() {
 }
 
 void setup() {
-    pinMode(MCU_SIM_EN_PIN, OUTPUT); 
-    digitalWrite(MCU_SIM_EN_PIN, HIGH);
-    delay(20);
+    pinMode(MCU_SIM_EN_PIN, OUTPUT);
+    digitalWrite(MCU_SIM_EN_PIN, HIGH); 
+    delay(500);   // Thả PWRKEY lên cao
     Serial.begin(115200);
+    pinMode(MCU_LED, OUTPUT);
+    digitalWrite(MCU_LED, HIGH);
     Serial.println("\n\n\n\n-----------------------\nSystem started!!!!");
     delay(8000);
+    Serial.println("Starting ESP32 WiFi Test...");
+
+    // Đặt ESP32 ở chế độ Station (kết nối với WiFi)
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+
+    Serial.print("Connecting to ");
+    Serial.println(ssid);
+
+    // Chờ kết nối WiFi
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+
+    // Khi kết nối thành công
+    Serial.println("");
+    Serial.println("WiFi connected!");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());      // Hiển thị địa chỉ IP
+    Serial.print("RSSI: ");
+    Serial.println(WiFi.RSSI());         // Hiển thị cường độ tín hiệu (dBm)
+    Serial.print("MAC Address: ");
+    Serial.println(WiFi.macAddress());   // Hiển thị địa chỉ MAC
+
     simSerial.begin(MCU_SIM_BAUDRATE, SERIAL_8N1, MCU_SIM_RX_PIN, MCU_SIM_TX_PIN);
     Serial.println("Checking AT command...");
     sim_at_cmd("AT");
@@ -71,8 +100,16 @@ void setup() {
     sim_at_cmd("AT+CSQ");
     Serial.println("Getting IMSI...");
     sim_at_cmd("AT+CIMI");
-    sent_sms();
-    delay(5000);   
+    //sent_sms();
+    // delay(5000);   
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("Still connected to WiFi");
+        Serial.print("RSSI: ");
+        Serial.println(WiFi.RSSI());
+    } else {
+        Serial.println("WiFi disconnected! Attempting to reconnect...");
+        WiFi.reconnect();
+    }
     get_gps_data();
   
 }
@@ -81,5 +118,7 @@ void loop() {
         char c = Serial.read();
         simSerial.write(c);
     }
-    sim_at_wait();
+    sim_at_cmd("AT+QGPSLOC=0");// đọc lại vị trí GPS sau 5S
+    delay(5000);
+    
 }
